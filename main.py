@@ -73,7 +73,7 @@ def pipelinePreprocessX(x_train):
                                       ("cat", cat_transform, cat_features)])
     return preprocessor
 
-def testWeakClassifiers(x_train, y_train, preprocess):
+def testWeakClassifiers(x_train, y_train, pre):
     classifiers = {
         # "K Nearest Neighbors" : KNeighborsClassifier(5),
         # "Decision Tree" : DecisionTreeClassifier(),
@@ -99,7 +99,7 @@ def testWeakClassifiers(x_train, y_train, preprocess):
     KF = KFold(shuffle=True, random_state=random, n_splits=20)
     strat_KF = StratifiedKFold(shuffle=True, random_state=random, n_splits=20)
     for name, classifier in classifiers.items():
-        pipeline = Pipeline([("preprocessor", preprocess),
+        pipeline = Pipeline([("preprocessor", pre),
                              ("estimator", classifier)])
         cv_score = np.average(cross_val_score(pipeline, x_train, y_train, cv=KF))
         print(f"{name} scored {cv_score} with K-Fold")
@@ -109,7 +109,7 @@ def testWeakClassifiers(x_train, y_train, preprocess):
             best_fold = "KF"
             best_classifier = classifier
     for name, classifier in classifiers.items():
-        pipeline = Pipeline([("preprocessor", preprocess),
+        pipeline = Pipeline([("preprocessor", pre),
                              ("estimator", classifier)])
         cv_score = np.average(cross_val_score(pipeline, x_train, y_train, cv=strat_KF))
         print(f"{name} scored {cv_score} with Stratified K-Fold")
@@ -122,7 +122,7 @@ def testWeakClassifiers(x_train, y_train, preprocess):
     print(f"{best} is the best classifier with score = {best_score}, best fold is {best_fold}")
     return best_classifier
 
-def testRandomForestParameters(x_train, y_train, preprocess):
+def testRandomForestParameters(x_train, y_train, pre):
     cross_validation = StratifiedKFold(shuffle=True, random_state=random, n_splits=20)
     params = {
         'randomforest__bootstrap': [True, False],
@@ -132,7 +132,7 @@ def testRandomForestParameters(x_train, y_train, preprocess):
         'randomforest__min_samples_split': [2, 5, 10],
         'randomforest__n_estimators': [100, 200, 500, 1000]
     }
-    pipeline = Pipeline([("preprocessor", preprocess),
+    pipeline = Pipeline([("preprocessor", pre),
                          ("randomforest" , RandomForestClassifier(random_state=random))])
     forest_search = RandomizedSearchCV(pipeline, param_distributions=params, n_iter=120, verbose=1, n_jobs=-1, cv=cross_validation)
     forest_search.fit(x_train, y_train)
@@ -141,30 +141,30 @@ def testRandomForestParameters(x_train, y_train, preprocess):
     return forest_search.best_params_
 
 
-def modelEvaluation(X, y, pre):
+def modelEvaluation(x_train, y_train, pre):
     cross_validation = StratifiedKFold(shuffle=True, random_state=(random + 20), n_splits=20)
     model = RandomForestClassifier(random_state=(random + 20), n_estimators=500, min_samples_split=10, min_samples_leaf=2, max_features="sqrt", max_depth=80, bootstrap=True)
-    y_pred = cross_val_predict(Pipeline([("pre", pre), ("evl", model)]), X, y, cv=cross_validation, n_jobs=-1)
-    print(confusion_matrix(y, y_pred))
-    print(classification_report(y, y_pred))
+    y_res = cross_val_predict(Pipeline([("pre", pre), ("evl", model)]), x_train, y_train, cv=cross_validation, n_jobs=-1)
+    print(confusion_matrix(y_train, y_res))
+    print(classification_report(y_train, y_res))
 
 
     cross_validation = StratifiedKFold(shuffle=True, random_state=(random + 20), n_splits=20)
     model = RandomForestClassifier(random_state=(random + 20), n_estimators=100, min_samples_split=10, min_samples_leaf=1, max_features="sqrt", max_depth=50, bootstrap=True)
-    y_pred = cross_val_predict(Pipeline([("pre", pre), ("evl", model)]), X, y, cv=cross_validation, n_jobs=-1)
-    print(confusion_matrix(y, y_pred))
-    print(classification_report(y, y_pred))
+    y_res = cross_val_predict(Pipeline([("pre", pre), ("evl", model)]), x_train, y_train, cv=cross_validation, n_jobs=-1)
+    print(confusion_matrix(y_train, y_res))
+    print(classification_report(y_train, y_res))
 
     cross_validation = StratifiedKFold(shuffle=True, random_state=(random + 28), n_splits=20)
     model = RandomForestClassifier(random_state=(random + 40), n_estimators=500, min_samples_split=10,
                                    min_samples_leaf=4, max_features="auto", max_depth=70, bootstrap=True)
-    y_pred = cross_val_predict(Pipeline([("pre", pre), ("evl", model)]), X, y, cv=cross_validation, n_jobs=-1)
-    print(confusion_matrix(y, y_pred))
-    print(classification_report(y, y_pred))
+    y_res = cross_val_predict(Pipeline([("pre", pre), ("evl", model)]), x_train, y_train, cv=cross_validation, n_jobs=-1)
+    print(confusion_matrix(y_train, y_res))
+    print(classification_report(y_train, y_res))
 
 
-def fitAndOutput(x_train, y_train, preprocess, best_model):
-    complete_pipeline = Pipeline([("preprocessor", preprocess),
+def fitAndOutput(x_train, y_train, pre, best_model):
+    complete_pipeline = Pipeline([("preprocessor", pre),
                                   ("estimator", best_model)])
     complete_pipeline.fit(x_train, y_train)
     x_eval = readEvaluationData()
