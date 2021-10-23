@@ -16,7 +16,6 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 
 from sklearn.pipeline import Pipeline
-from os import linesep
 
 FULL_TRAIN_FILE = "TrainOnMe-2.csv"
 EVALUATE_FILE = "EvaluateOnMe-2.csv"
@@ -197,7 +196,7 @@ if __name__ == '__main__':
     # best_model = testWeakClassifiers(X_train, Y_train, preprocessor)
     # testRandomForestParameters(X_train, Y_train, preprocessor)
     # modelEvaluation(X_train, Y_train, preprocessor)
-    best_model = RandomForestClassifier(random_state=random + 20, n_estimators=500, min_samples_split=10, min_samples_leaf=4, max_features="auto", max_depth=70, bootstrap=True)
+    best_model = RandomForestClassifier(random_state=random + 1, n_estimators=500, min_samples_split=10, min_samples_leaf=4, max_features="auto", max_depth=70, bootstrap=True)
     fitAndOutput(X_train, Y_train, preprocessor, best_model)
 
 
